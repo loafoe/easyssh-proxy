@@ -42,13 +42,13 @@ type (
 		Passphrase   string
 		Password     string
 		Timeout      time.Duration
-		Proxy        DefaultConfig
+		Bastion      DefaultConfig
 		Ciphers      []string
 		KeyExchanges []string
 		Fingerprint  string
 
 		// HTTP Proxy support
-		ProxyInfo func(req *http.Request) (*url.URL, error)
+		Proxy func(req *http.Request) (*url.URL, error)
 
 		// Enable the use of insecure ciphers and key exchange methods.
 		// This enables the use of the the following insecure ciphers and key exchange methods:
@@ -210,12 +210,12 @@ func (ssh_conf *MakeConfig) Connect() (*ssh.Session, *ssh.Client, error) {
 
 	// HTTP proxy support
 	var proxyAddr string
-	if ssh_conf.ProxyInfo != nil {
+	if ssh_conf.Proxy != nil {
 		req, _ := http.NewRequest("CONNECT", "https://"+ssh_conf.Server, nil)
-		proxyInfo, err := ssh_conf.ProxyInfo(req)
+		proxyInfo, err := ssh_conf.Proxy(req)
 		if proxyInfo == nil { // Try http:// as well
 			req, _ = http.NewRequest("CONNECT", "http://"+ssh_conf.Server, nil)
-			proxyInfo, err = ssh_conf.ProxyInfo(req)
+			proxyInfo, err = ssh_conf.Proxy(req)
 		}
 		if err == nil && proxyInfo != nil {
 			proxyAddr = proxyInfo.Host
@@ -227,18 +227,18 @@ func (ssh_conf *MakeConfig) Connect() (*ssh.Session, *ssh.Client, error) {
 	}
 
 	// Use bastion server
-	if ssh_conf.Proxy.Server != "" {
+	if ssh_conf.Bastion.Server != "" {
 		proxyConfig, closer := getSSHConfig(DefaultConfig{
-			User:              ssh_conf.Proxy.User,
-			Key:               ssh_conf.Proxy.Key,
-			KeyPath:           ssh_conf.Proxy.KeyPath,
-			Passphrase:        ssh_conf.Proxy.Passphrase,
-			Password:          ssh_conf.Proxy.Password,
-			Timeout:           ssh_conf.Proxy.Timeout,
-			Ciphers:           ssh_conf.Proxy.Ciphers,
-			KeyExchanges:      ssh_conf.Proxy.KeyExchanges,
-			Fingerprint:       ssh_conf.Proxy.Fingerprint,
-			UseInsecureCipher: ssh_conf.Proxy.UseInsecureCipher,
+			User:              ssh_conf.Bastion.User,
+			Key:               ssh_conf.Bastion.Key,
+			KeyPath:           ssh_conf.Bastion.KeyPath,
+			Passphrase:        ssh_conf.Bastion.Passphrase,
+			Password:          ssh_conf.Bastion.Password,
+			Timeout:           ssh_conf.Bastion.Timeout,
+			Ciphers:           ssh_conf.Bastion.Ciphers,
+			KeyExchanges:      ssh_conf.Bastion.KeyExchanges,
+			Fingerprint:       ssh_conf.Bastion.Fingerprint,
+			UseInsecureCipher: ssh_conf.Bastion.UseInsecureCipher,
 		})
 		if closer != nil {
 			defer closer.Close()
@@ -253,7 +253,7 @@ func (ssh_conf *MakeConfig) Connect() (*ssh.Session, *ssh.Client, error) {
 			var bChans <-chan ssh.NewChannel
 			var bReq <-chan *ssh.Request
 
-			bAddr := net.JoinHostPort(ssh_conf.Proxy.Server, ssh_conf.Proxy.Port)
+			bAddr := net.JoinHostPort(ssh_conf.Bastion.Server, ssh_conf.Bastion.Port)
 			direct = directDialer{}
 
 			registerDialerType()
@@ -270,7 +270,7 @@ func (ssh_conf *MakeConfig) Connect() (*ssh.Session, *ssh.Client, error) {
 			}
 			proxyClient = ssh.NewClient(bConn, bChans, bReq)
 		} else {
-			proxyClient, err = ssh.Dial("tcp", net.JoinHostPort(ssh_conf.Proxy.Server, ssh_conf.Proxy.Port), proxyConfig)
+			proxyClient, err = ssh.Dial("tcp", net.JoinHostPort(ssh_conf.Bastion.Server, ssh_conf.Bastion.Port), proxyConfig)
 		}
 		if err != nil {
 			return nil, nil, err

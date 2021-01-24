@@ -1,4 +1,4 @@
-module github.com/appleboy/easyssh-proxy
+module github.com/loafoe/easyssh-proxy
 
 go 1.15
 

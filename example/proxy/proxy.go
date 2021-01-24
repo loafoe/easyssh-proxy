@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/appleboy/easyssh-proxy"
+	"github.com/loafoe/easyssh-proxy/v2"
 )
 
 func main() {
@@ -13,7 +13,7 @@ func main() {
 		Server:  "localhost",
 		Port:    "22",
 		KeyPath: "./tests/.ssh/id_rsa",
-		Proxy: easyssh.DefaultConfig{
+		Bastion: easyssh.DefaultConfig{
 			User:    "drone-scp",
 			Server:  "localhost",
 			Port:    "22",

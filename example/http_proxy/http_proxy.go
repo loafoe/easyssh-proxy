@@ -4,19 +4,19 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/appleboy/easyssh-proxy"
+	"github.com/loafoe/easyssh-proxy/v2"
 )
 
 func main() {
 	// Create MakeConfig instance with remote username, server address and path to private key.
 	// Use a HTTP proxy listening on 127.0.0.1:8888 to connect to Proxy/Bastion
 	ssh := &easyssh.MakeConfig{
-		User:      "drone-scp",
-		Server:    "localhost",
-		Port:      "22",
-		KeyPath:   "./tests/.ssh/id_rsa",
-		ProxyInfo: http.ProxyFromEnvironment,
-		Proxy: easyssh.DefaultConfig{
+		User:    "drone-scp",
+		Server:  "localhost",
+		Port:    "22",
+		KeyPath: "./tests/.ssh/id_rsa",
+		Proxy:   http.ProxyFromEnvironment,
+		Bastion: easyssh.DefaultConfig{
 			User:    "drone-scp",
 			Server:  "localhost",
 			Port:    "22",
