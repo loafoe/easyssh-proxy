@@ -1,4 +1,4 @@
-module github.com/loafoe/easyssh-proxy
+module github.com/loafoe/easyssh-proxy/v2
 
 go 1.15
 
